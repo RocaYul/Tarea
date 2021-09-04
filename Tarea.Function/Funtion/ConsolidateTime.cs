@@ -1,26 +1,23 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage.Table;
 using Tarea.Common.Response;
 using Tarea.Function.Entities;
 
 namespace Tarea.Function.Funtion
 {
-    public static class Consolidated
+    public static class ConsolidateTime
     {
-        [FunctionName("Consolidated")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "put", Route = null)] HttpRequest req,
-            [Table("EmployedTime", Connection = "AzureWebJobsStorage")] CloudTable employedTable,
+        [FunctionName("ConsolidateTime")]
+        public static async Task Run([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer,
+             [Table("EmployedTime", Connection = "AzureWebJobsStorage")] CloudTable employedTable,
             [Table("Consolidate", Connection = "AzureWebJobsStorage")] CloudTable consolidateTable,
             ILogger log)
         {
-
             log.LogInformation("C# HTTP trigger function processed a request.");
             string message = "empleado";
             log.LogInformation(message);
@@ -60,23 +57,18 @@ namespace Tarea.Function.Funtion
                                 }
 
                                 TableOperation createConsolidate = TableOperation.Insert(CreateConsolidate(employed2, OperationDate(employed1.InputOutput, employed2.InputOutput)));
-                                await consolidateTable.ExecuteAsync(createConsolidate); 
+                                await consolidateTable.ExecuteAsync(createConsolidate);
                             }
                         }
                     }
                 }
             }
-            return new OkObjectResult(new Response
-            {
-                IsSuccess = true,
-                Message = message,
-                Result = employed
-            });
+            log.LogInformation("Tarea actualizada");
         }
 
         public static ConsolidatedEntity CreateConsolidate(EmployedEntity employed, int minutes)
         {
-           return new ConsolidatedEntity
+            return new ConsolidatedEntity
             {
                 IdEmployed = employed.IdEmployed,
                 WorkDate = employed.InputOutput, //London time
