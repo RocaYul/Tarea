@@ -141,33 +141,33 @@ namespace Tarea.Function.Funtion
         }
 
         //Recuperate task- get one element of the task
-        [FunctionName(nameof(GetEmployedById))]
-        public static IActionResult GetEmployedById(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time/{id}")] HttpRequest req,
-            [Table("EmployedTime", "EMPLOYED", "{id}", Connection = "AzureWebJobsStorage")] EmployedEntity employedEntity,
-            string id,
+        [FunctionName(nameof(GetEmployedByDate))]
+        public static IActionResult GetEmployedByDate(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time/{date}")] HttpRequest req,
+            [Table("Consolidate", "CONSOLIDATED", "{date}", Connection = "AzureWebJobsStorage")] ConsolidatedEntity consolidateEntity,
+            DateTime date,
             ILogger log)
         //Siempre inyectar request aunque no se necesite
         {
-            log.LogInformation($"Get task: {id}, received");
+            log.LogInformation($"Get task: {date}, received");
 
-            if (employedEntity == null)
+            if (consolidateEntity == null)
             {
                 return new BadRequestObjectResult(new Response
                 {
                     IsSuccess = false,
-                    Message = "Tarea not found."
+                    Message = "Date not found."
                 });
             }
 
-            string message = $"Task: {employedEntity.IdEmployed}, retreived";
+            string message = $"Task: {consolidateEntity.WorkDate}, retreived";
             log.LogInformation(message);
 
             return new OkObjectResult(new Response
             {
                 IsSuccess = true,
                 Message = message,
-                Result = employedEntity
+                Result = consolidateEntity
             });
         }
 
