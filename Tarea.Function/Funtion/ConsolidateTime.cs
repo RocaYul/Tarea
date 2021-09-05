@@ -71,7 +71,7 @@ namespace Tarea.Function.Funtion
             return new ConsolidatedEntity
             {
                 IdEmployed = employed.IdEmployed,
-                WorkDate = employed.InputOutput, //London time
+                WorkDate = Convert.ToDateTime(employed.InputOutput.ToString("yyyy-MM-dd")), //London time
                 WorkMinutes = minutes,
                 ETag = "*",
                 PartitionKey = "CONSOLIDATED",
