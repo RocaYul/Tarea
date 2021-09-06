@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using System;
@@ -11,6 +12,18 @@ namespace Tarea.Test.Helpers
 {
     public class TestFactory
     {
+        public static ConsolidatedEntity GetConsolidated()
+        {
+            return new ConsolidatedEntity
+            {
+                ETag = "*",
+                PartitionKey = "CONSOLIDATED",
+                RowKey = Guid.NewGuid().ToString(),
+                IdEmployed = 1,
+                WorkDate = DateTime.UtcNow,
+                WorkMinutes = 0
+            };
+        }
         public static EmployedEntity GetEmployedEntity()
         {
             return new EmployedEntity
@@ -25,10 +38,10 @@ namespace Tarea.Test.Helpers
             };
         }
 
-        //Mapear los metodos de crear
-        public static DefaultHttpRequest CreateHttpRequest(Guid employedId, Employed tareaRequest)
+        //update
+        public static DefaultHttpRequest CreateHttpRequest(Guid employedId, Employed employedRequest)
         {
-            string request = JsonConvert.SerializeObject(tareaRequest);
+            string request = JsonConvert.SerializeObject(employedRequest);
             return new DefaultHttpRequest(new DefaultHttpContext())
             {
                 Body = GenerateStreamFromString(request),
@@ -36,6 +49,7 @@ namespace Tarea.Test.Helpers
             };
         }
 
+        //Delete
         public static DefaultHttpRequest CreateHttpRequest(Guid employedId)
         {
             return new DefaultHttpRequest(new DefaultHttpContext())
@@ -44,7 +58,7 @@ namespace Tarea.Test.Helpers
             };
         }
 
-        //Mapear los metodos de Eliminar
+        //Created
         public static DefaultHttpRequest CreateHttpRequest(Employed employedRequest)
         {
             string request = JsonConvert.SerializeObject(employedRequest);
@@ -54,9 +68,18 @@ namespace Tarea.Test.Helpers
             };
         }
 
+        //GetAll
         public static DefaultHttpRequest CreateHttpRequest()
         {
             return new DefaultHttpRequest(new DefaultHttpContext());
+        }
+
+        public static DefaultHttpRequest CreateHttpRequest(DateTime work)
+        {
+            return new DefaultHttpRequest(new DefaultHttpContext())
+            {
+                Path = $"/{work}"
+            };
         }
 
         public static Employed GetEmployedRequest()
@@ -70,7 +93,17 @@ namespace Tarea.Test.Helpers
             };
         }
 
-        private static Stream GenerateStreamFromString(string stringToConvert)
+        public static Consolidated GetConsolidateRequest()
+        {
+            return new Consolidated
+            {
+                IdEmployed = 1,
+                WorkDate = DateTime.UtcNow,
+                WorkMinutes = 0
+            };
+        }
+
+        public static Stream GenerateStreamFromString(string stringToConvert)
         {
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);

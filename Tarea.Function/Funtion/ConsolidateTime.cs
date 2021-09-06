@@ -67,11 +67,11 @@ namespace Tarea.Function.Funtion
         }
 
         public static ConsolidatedEntity CreateConsolidate(EmployedEntity employed, int minutes)
-        {
+        { 
             return new ConsolidatedEntity
             {
                 IdEmployed = employed.IdEmployed,
-                WorkDate = Convert.ToDateTime(employed.InputOutput.ToString("yyyy-MM-dd")), //London time
+                WorkDate = DateTime.Parse(employed.InputOutput.ToString("yyyy/MM/dd")), //London time
                 WorkMinutes = minutes,
                 ETag = "*",
                 PartitionKey = "CONSOLIDATED",

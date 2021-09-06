@@ -11,6 +11,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using Tarea.Common.Models;
 using Tarea.Common.Response;
 using Tarea.Function.Entities;
+using Microsoft.AspNetCore.Http.Internal;
 
 namespace Tarea.Function.Funtion
 {
@@ -122,12 +123,11 @@ namespace Tarea.Function.Funtion
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time")] HttpRequest req,
             [Table("EmployedTime", Connection = "AzureWebJobsStorage")] CloudTable employedTable,
             ILogger log)
-        //Siempre inyectar request aunque no se necesite
         {
             log.LogInformation("Get all employed received");
 
             TableQuery<EmployedEntity> query = new TableQuery<EmployedEntity>();
-            TableQuerySegment<EmployedEntity> employed = await employedTable.ExecuteQuerySegmentedAsync(query, null);
+            TableQuerySegment<EmployedEntity> employed = await employedTable.ExecuteQuerySegmentedAsync(query,null);
 
             string message = "Retrieved all employed";
             log.LogInformation(message);
@@ -142,47 +142,50 @@ namespace Tarea.Function.Funtion
 
         //Recuperate task- get one element of the task
         [FunctionName(nameof(GetEmployedByDate))]
-        public static IActionResult GetEmployedByDate(
+        public static async Task<IActionResult> GetEmployedByDate(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time/{date}")] HttpRequest req,
-            [Table("Consolidate", "CONSOLIDATED", "{date}", Connection = "AzureWebJobsStorage")] ConsolidatedEntity consolidateEntity,
+            [Table("Consolidate", Connection = "AzureWebJobsStorage")] CloudTable consolidateTable,
             DateTime date,
             ILogger log)
         //Siempre inyectar request aunque no se necesite
         {
             log.LogInformation($"Get task: {date}, received");
+            DateTime hora = date.AddHours(12).AddMinutes(59).AddSeconds(59);
 
-            if (consolidateEntity == null)
-            {
-                return new BadRequestObjectResult(new Response
-                {
-                    IsSuccess = false,
-                    Message = "Date not found."
-                });
-            }
+            string quer = TableQuery.CombineFilters(TableQuery.GenerateFilterConditionForDate("WorkDate", QueryComparisons.GreaterThanOrEqual,date),
+                TableOperators.And,
+                TableQuery.GenerateFilterConditionForDate("WorkDate", QueryComparisons.LessThanOrEqual, hora));
+            TableQuery<ConsolidatedEntity> query = new TableQuery<ConsolidatedEntity>().Where(quer);
+            TableQuerySegment<ConsolidatedEntity> employed = await consolidateTable.ExecuteQuerySegmentedAsync(query,null);
 
-            string message = $"Task: {consolidateEntity.WorkDate}, retreived";
+            string message = "Retrieved all employed";
             log.LogInformation(message);
 
             return new OkObjectResult(new Response
             {
                 IsSuccess = true,
                 Message = message,
-                Result = consolidateEntity
+                Result = employed
             });
         }
 
-        [FunctionName(nameof(DeleteEmployed))]
-        public static async Task<IActionResult> DeleteEmployed(
+            [FunctionName(nameof(DeleteEmployedd))]
+            public static async Task<IActionResult> DeleteEmployedd(
            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "time/{id}")] HttpRequest req,
-           [Table("EmployedTime", "EMPLOYED", "{id}", Connection = "AzureWebJobsStorage")] EmployedEntity employedEntity,
            [Table("EmployedTime", Connection = "AzureWebJobsStorage")] CloudTable employedTable,
            string id,
            ILogger log)
-        //Siempre inyectar request aunque no se necesite
-        {
-            log.LogInformation($"Delete employed: {id}, received");
+            //Siempre inyectar request aunque no se necesite
+            {
+                log.LogInformation($"Delete employed: {id}, received");
 
-            if (employedEntity == null)
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            Employed employed = JsonConvert.DeserializeObject<Employed>(requestBody); //Read body of message
+
+            //Validate employed id
+            TableOperation findOperation = TableOperation.Retrieve<EmployedEntity>("EMPLOYED", id);
+            TableResult findResult = await employedTable.ExecuteAsync(findOperation);
+            if (findResult.Result == null)
             {
                 return new BadRequestObjectResult(new Response
                 {
@@ -191,16 +194,18 @@ namespace Tarea.Function.Funtion
                 });
             }
 
-            await employedTable.ExecuteAsync(TableOperation.Delete(employedEntity));
-            string message = $"Task delete: {employedEntity.RowKey}, retreived";
-            log.LogInformation(message);
+            EmployedEntity employedEntity = (EmployedEntity)findResult.Result;
 
-            return new OkObjectResult(new Response
-            {
-                IsSuccess = true,
-                Message = message,
-                Result = employedEntity
-            });
-        }
+            await employedTable.ExecuteAsync(TableOperation.Delete(employedEntity));
+                string message = $"Task delete: {employedEntity.RowKey}, retreived";
+                log.LogInformation(message);
+
+                return new OkObjectResult(new Response
+                {
+                    IsSuccess = true,
+                    Message = message,
+                    Result = employedEntity
+                });
+            }
     }
 }
