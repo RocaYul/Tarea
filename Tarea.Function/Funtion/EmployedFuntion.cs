@@ -167,7 +167,7 @@ namespace Tarea.Function.Funtion
             {
                 IsSuccess = true,
                 Message = message,
-                Result = query
+                Result = entity
             });
         }
 
