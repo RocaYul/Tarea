@@ -21,7 +21,7 @@ namespace Tarea.Function.Funtion
             ILogger log)
         {
 
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            log.LogInformation("Consolidate completed");
             string message = "empleado";
             log.LogInformation(message);
 

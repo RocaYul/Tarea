@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using Tarea.Common.Models;
+using Tarea.Function.Entities;
 using Tarea.Function.Funtion;
 using Tarea.Test.Helpers;
 using Xunit;
@@ -13,7 +14,7 @@ namespace Tarea.Test.Tests
         //Se crea este vlaor por el suso reiteartivo del logger
         private readonly Microsoft.Extensions.Logging.ILogger logger = TestFactory.CreateLogger();
 
-        [Fact]
+        /*[Fact]
         public async void GetAllEmployed_Should_Return_200()
         {
             //Arrenge inicio de las pruebas
@@ -27,6 +28,7 @@ namespace Tarea.Test.Tests
             OkObjectResult result = (OkObjectResult)response;
             Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
         }
+        */
 
         [Fact]
         public async void CreateEmployed_Should_Return_200()
@@ -78,7 +80,7 @@ namespace Tarea.Test.Tests
        
         }
 
-        [Fact]
+        /*[Fact]
         public async void GetDateEmployed_Should_Return_200()
         {
             //Arrenge inicio de las pruebas
@@ -94,5 +96,6 @@ namespace Tarea.Test.Tests
             Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
 
         }
+        */
     }
 }

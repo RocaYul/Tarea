@@ -12,6 +12,7 @@ using Tarea.Common.Models;
 using Tarea.Common.Response;
 using Tarea.Function.Entities;
 using Microsoft.AspNetCore.Http.Internal;
+using System.Collections.Generic;
 
 namespace Tarea.Function.Funtion
 {
@@ -121,14 +122,14 @@ namespace Tarea.Function.Funtion
         [FunctionName(nameof(GetAllEmployed))]
         public static async Task<IActionResult> GetAllEmployed(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "time")] HttpRequest req,
-            [Table("EmployedTime", Connection = "AzureWebJobsStorage")] CloudTable employedTable,
+            [Table("EmployedTime","EMPLOYED", Connection = "AzureWebJobsStorage")] CloudTable employedTable,
             ILogger log)
         {
             log.LogInformation("Get all employed received");
 
             TableQuery<EmployedEntity> query = new TableQuery<EmployedEntity>();
-            TableQuerySegment<EmployedEntity> employed = await employedTable.ExecuteQuerySegmentedAsync(query,null);
-
+            TableQuerySegment<EmployedEntity> end = await employedTable.ExecuteQuerySegmentedAsync(query, null);
+            
             string message = "Retrieved all employed";
             log.LogInformation(message);
 
@@ -136,9 +137,10 @@ namespace Tarea.Function.Funtion
             {
                 IsSuccess = true,
                 Message = message,
-                Result = employed
+                Result = null
             });
         }
+
 
         //Recuperate task- get one element of the task
         [FunctionName(nameof(GetEmployedByDate))]
@@ -156,8 +158,8 @@ namespace Tarea.Function.Funtion
                 TableOperators.And,
                 TableQuery.GenerateFilterConditionForDate("WorkDate", QueryComparisons.LessThanOrEqual, hora));
             TableQuery<ConsolidatedEntity> query = new TableQuery<ConsolidatedEntity>().Where(quer);
-            TableQuerySegment<ConsolidatedEntity> employed = await consolidateTable.ExecuteQuerySegmentedAsync(query,null);
-
+            TableQuerySegment<ConsolidatedEntity> entity = await consolidateTable.ExecuteQuerySegmentedAsync(query,null);
+           
             string message = "Retrieved all employed";
             log.LogInformation(message);
 
@@ -165,7 +167,7 @@ namespace Tarea.Function.Funtion
             {
                 IsSuccess = true,
                 Message = message,
-                Result = employed
+                Result = query
             });
         }
 
